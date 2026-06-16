@@ -42,16 +42,69 @@ Each dimension maps to established UX research:
 ## The Formula
 
 ```
-UX Fitness = Paradigm Cap × (Execution Score / 10) × 100%
+UX Fitness = Purpose Gate (pass/fail) → Paradigm Cap × (Execution Score / 10) × 100%
 ```
 
 | Component | How Calculated |
 |-----------|---------------|
+| Purpose Gate | Pass or Fail (fail = score capped at 15%) |
 | Paradigm Cap | 1.0 (match), 0.75 (defensible), 0.40 (mismatch) |
 | Execution Score | Weighted sum of 6 dimensions (each scored 1-10) |
 | Normalisation | Divide by 10 to convert 1-10 scale to 0-1 range |
 
-**If paradigm fit fails, execution score is capped.** You cannot polish a table into being the right choice when the data is a graph.
+**If purpose gate fails, the UI is slop — cap at 15% regardless of execution polish.**
+If paradigm fit fails, execution score is capped at 40%.
+
+---
+
+## Stage 0: Purpose Evidence (Slop Detection)
+
+**Gate question:** Can you state the user's primary goal in one sentence by examining this UI?
+
+If not, the UI was likely generated without clear intent. Stop here — no amount of paradigm or execution assessment matters.
+
+### Process
+
+1. **Examine the UI** — look at what's on screen
+2. **Attempt to state the goal** — "The user needs to ___"
+3. **Check justification density** — what % of visible elements serve that goal?
+4. **Verdict:** Pass or Fail
+
+### Slop Signals
+
+| Signal | What It Looks Like | Why It's Slop |
+|--------|-------------------|---------------|
+| **No articulable goal** | Page has widgets but no clear user task | Built without a spec or user story |
+| **Feature soup** | 8+ distinct capabilities on one page | Every possible feature dumped without prioritisation |
+| **Decoration > function** | Gradient cards, animated counters, stock icons with no data | Looks impressive, serves no workflow |
+| **Default component syndrome** | Cards, tables, modals — all fine individually, incoherent together | Components used because they exist, not because they're needed |
+| **Phantom data** | Charts with fake/random data shapes, stats that don't connect to actions | UI shaped around dummy data, not real usage |
+| **No user journey** | Page exists in isolation, no inbound/outbound flow | No consideration of what happens before/after |
+| **Over-engineering** | Complex multi-panel UI for a task that needs 1 input + 1 button | Complexity without purpose |
+
+### Justification Density Test
+
+For every visible element, ask: **"What user task does this serve?"**
+
+| Density | Verdict | Meaning |
+|---------|---------|---------|
+| >80% justified | ✅ Pass | UI has clear purpose, proceed to Stage 1 |
+| 50-80% justified | ⚠️ Weak pass | Proceed but flag noise elements |
+| <50% justified | ❌ Fail — Slop | Cap at 15%, recommend rebuild with spec |
+
+### Purpose Gate Verdict
+
+| Verdict | Score Cap | Next Step |
+|---------|-----------|-----------|
+| ✅ Pass | No cap | Proceed to Stage 1 |
+| ⚠️ Weak pass | No cap (but flag) | Proceed, note unjustified elements in recommendations |
+| ❌ Fail | Cap at 15% | Stop. Recommend: define user goals first, rebuild |
+
+**When failing, report:**
+1. What the UI appears to show
+2. Why no coherent goal could be identified
+3. Which slop signals were detected
+4. Recommendation: write a spec/user story before touching UI
 
 ---
 
@@ -230,15 +283,17 @@ A page can pass at page-level but have atomic failures (e.g., right layout, wron
 
 ## How to Run the Assessment
 
-1. **State the user's goal(s)** — one sentence per task
-2. **Classify task frequency** — high/medium/low
-3. **Classify data nature** from paradigm table (identify dominant if compound)
-4. **Check paradigm fit** — match, defensible, or mismatch?
-5. **If mismatch:** stop, name the correct paradigm, explain gulf
-6. **If match/defensible:** apply frequency modifier to weights, score 6 dimensions
-7. **Calculate final score** with explicit normalisation
-8. **For multi-task pages:** aggregate per-task scores
-9. **Report findings** with evidence for each rating
+1. **Stage 0: Purpose check** — can you state the user's goal? Check justification density
+2. **If fail:** stop, report slop signals, recommend spec-first rebuild
+3. **State the user's goal(s)** — one sentence per task
+4. **Classify task frequency** — high/medium/low
+5. **Classify data nature** from paradigm table (identify dominant if compound)
+6. **Check paradigm fit** — match, defensible, or mismatch?
+7. **If mismatch:** stop, name the correct paradigm, explain gulf
+8. **If match/defensible:** apply frequency modifier to weights, score 6 dimensions
+9. **Calculate final score** with explicit normalisation
+10. **For multi-task pages:** aggregate per-task scores
+11. **Report findings** with evidence for each rating
 
 ### Output Format
 
@@ -248,6 +303,11 @@ A page can pass at page-level but have atomic failures (e.g., right layout, wron
 **User Goal(s):** [one sentence per task, with frequency weight]
 **Data Nature:** [classification — note if compound, state dominant]
 **Task Frequency:** High | Medium | Low
+
+### Stage 0: Purpose Evidence
+**Articulable Goal:** Yes | No
+**Justification Density:** X% — Pass | Weak Pass | Fail
+**Slop Signals Detected:** [list or "None"]
 
 ### Stage 1: Paradigm Fit
 **Chosen Paradigm:** [what was built]
