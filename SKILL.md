@@ -19,6 +19,47 @@ Most UX problems aren't poor execution — they're the wrong UI type entirely. A
 - When reviewing whether an existing page is the right *shape* for its task
 - When something feels off but you can't articulate why
 - When comparing alternative UI approaches for a feature
+- When a UI feels overbuilt, wrong, cluttered, or "not quite right"
+- When a page works but users avoid it or find workarounds
+- When AI-generated UI looks polished but feels purposeless (slop detection)
+
+## Quick Reference
+
+```
+STAGE 0: Can you state the user's goal? → No = Slop (cap 15%)
+STAGE 1: Does paradigm match data nature? → Mismatch = cap 40%, Defensible = cap 75%
+STAGE 2: Score 6 dimensions (1-10), apply weights, multiply by cap
+
+Formula: Final = (Weighted Execution / 10) × Paradigm Cap × 100%
+Dimensions: Task Alignment 25% | Cognitive Load 25% | Info Scent 20% | 
+            Interaction Cost 15% | Error Prevention 10% | Feedback 5%
+```
+
+**Complementary skill:** Use `reviewing-ui-by-execution-trace` for data-flow and implementation correctness. This skill assesses whether the *paradigm itself* is right.
+
+## Process Flow
+
+```dot
+digraph ux_fitness {
+  rankdir=TB;
+  node [shape=box];
+  
+  s0 [label="Stage 0: Purpose Evidence\nCan you state the user's goal?"];
+  s0_fail [label="STOP — Slop\nCap 15%, recommend spec-first rebuild" shape=octagon];
+  s1 [label="Stage 1: Paradigm Fit\nDoes UI match data nature + mental model?"];
+  s1_fail [label="STOP — Mismatch\nCap 40%, name correct paradigm" shape=octagon];
+  s2 [label="Stage 2: Execution Quality\nScore 6 dimensions"];
+  result [label="Calculate Final Score\nApply cap × normalised execution" shape=doublecircle];
+
+  s0 -> s0_fail [label="fail (<50% justified)"];
+  s0 -> s1 [label="pass"];
+  s1 -> s1_fail [label="mismatch"];
+  s1 -> s2 [label="match/defensible"];
+  s2 -> result;
+}
+```
+
+---
 
 ## Theoretical Foundations
 
@@ -331,6 +372,45 @@ A page can pass at page-level but have atomic failures (e.g., right layout, wron
 ### Recommendations
 1. [Highest impact change]
 2. [Next priority]
+```
+
+---
+
+## End-to-End Example
+
+**Scenario:** A recruitment app shows candidate pipeline as a paginated table with columns: Name, Role Applied, Stage (text: "Phone Screen"), Date Applied, Recruiter.
+
+Recruiters need to: move candidates through stages (70%), spot bottlenecks (20%), reassign (10%).
+
+```
+### Stage 0: Purpose Evidence
+Articulable Goal: Yes — "Recruiter moves candidates through hiring stages"
+Justification Density: 85% — all columns serve identification/action
+Verdict: ✅ Pass
+
+### Stage 1: Paradigm Fit
+Data Nature: Sequential steps with progress (candidates move through stages)
+Chosen Paradigm: Paginated table
+Ideal Paradigm: Kanban board / pipeline view (columns = stages, cards = candidates)
+Verdict: ❌ Mismatch (cap 0.40)
+Reasoning: Recruiter's mental model is a funnel/pipeline — candidates flow left→right
+through stages. A table forces them to read a text column and mentally group. 
+The table can't answer "how many are stuck at Phone Screen?" at a glance.
+
+### Stage 2: Execution Quality (capped — but scored for reference)
+Task alignment:    4/10 — table shows data but doesn't serve the "move" action
+Cognitive load:    3/10 — must mentally group by Stage column, violates Miller's Law
+Information scent: 4/10 — no visual signal of pipeline health
+Interaction cost:  5/10 — moving = edit a dropdown per row, not drag
+Error prevention:  5/10 — nothing prevents skipping stages
+Feedback loop:     4/10 — stage change updates text, no spatial movement confirmation
+
+Execution Score: (4×.25)+(3×.25)+(4×.20)+(5×.15)+(5×.10)+(4×.05) = 3.95
+Final UX Fit: (3.95/10) × 0.40 × 100% = 15.8%
+
+### Recommendation
+Replace with Kanban/pipeline board. Columns = stages, cards = candidates.
+Drag to move. Column counts show bottlenecks at a glance.
 ```
 
 ---
